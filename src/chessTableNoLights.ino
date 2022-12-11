@@ -1,17 +1,19 @@
 // #include <cstdio.h>
+#include <matrixDriver.h>
+#include <bluetoothSetup.h>
 // shift register pins
-#define PLOAD_PIN 6
-#define CLOCK_EN_PIN 4
-#define DATA_PIN 3
-#define CLOCK_PIN 5
+#define PLOAD_PIN 26
+#define CLOCK_EN_PIN 33
+#define DATA_PIN 32 
+#define CLOCK_PIN 25
 
 #define PULSE_WIDTH 5
 #define NUM_BYTES 8
 
 #define UPDATE_RATE_IN_MS 50
 
-#define DEBUG_SERIAL true
-
+#define DEBUG_SERIAL true 
+#define BLUETOOTH_ENABLED true
 uint8_t lastBoardState[NUM_BYTES] = {0};
 uint8_t currentBoardState[NUM_BYTES] = {0};
 uint32_t lastCheck = 0;
@@ -29,61 +31,14 @@ void printBits(byte myByte)
 }
 #endif
 
-void fixHardwareMistakes()
-{
-
-  uint8_t temp = currentBoardState[0];
-  currentBoardState[0] = (currentBoardState[0] & ~0x10) | (currentBoardState[1] & 0x10);
-  currentBoardState[1] = (currentBoardState[1] & ~0x10) | (temp & 0x10);
-
-  temp = currentBoardState[4];
-  currentBoardState[4] = (currentBoardState[4] & ~0xF0) | (currentBoardState[5] & 0xF0);
-  currentBoardState[5] = (currentBoardState[5] & ~0xF0) | (temp & 0xF0);
-}
-
-void setup_shift_registers()
-{
-  pinMode(PLOAD_PIN, OUTPUT);
-  pinMode(CLOCK_EN_PIN, OUTPUT);
-  pinMode(DATA_PIN, INPUT);
-  pinMode(CLOCK_PIN, OUTPUT);
-}
-void read_full_sensor_array()
-{
-
-  // read new board state into shift registers
-  digitalWrite(CLOCK_EN_PIN, HIGH);
-  digitalWrite(PLOAD_PIN, LOW);
-  delayMicroseconds(PULSE_WIDTH);
-  digitalWrite(PLOAD_PIN, HIGH);
-  digitalWrite(CLOCK_EN_PIN, LOW);
-
-  uint8_t value = 0;
-  uint8_t currentReadRow = 0;
-
-  for (int i = 0; i < NUM_BYTES; i++)
-  {
-    currentReadRow = 0;
-    lastBoardState[i] = currentBoardState[i];
-    for (int j = 0; j < 8; j++)
-    {
-      value = !digitalRead(DATA_PIN);
-      currentReadRow |= (value << ((7) - j));
-      // shift to next bit
-      digitalWrite(CLOCK_PIN, HIGH);
-      delayMicroseconds(PULSE_WIDTH);
-      digitalWrite(CLOCK_PIN, LOW);
-    }
-    currentBoardState[i] = currentReadRow;
-  }
-  fixHardwareMistakes(); // fix mistakes in soldering.
-}
-
 void send_values()
 {
+#if BLUETOOTH_ENABLED 
+send_bluetooth_packet(currentBoardState);
+#else 
   for (int i = 0; i < NUM_BYTES; i++)
   {
-#if DEBUG_SERIAL == true
+#if DEBUG_SERIAL
     printBits(currentBoardState[i]);
     Serial.println();
 #else
@@ -92,7 +47,7 @@ void send_values()
 #endif
     Serial.flush();
   }
-
+#endif
   Serial.println("--------------------------");
   Serial.flush();
 }
@@ -105,7 +60,8 @@ boolean is_board_changed()
 void setup()
 {
   Serial.begin(115200);
-  setup_shift_registers();
+  configure_bluetooth();
+  setup_sensor_matrix();
 }
 
 void loop()
@@ -113,7 +69,7 @@ void loop()
 
   if (millis() - lastCheck > UPDATE_RATE_IN_MS)
   {
-    read_full_sensor_array();
+    read_full_sensor_matrix(currentBoardState , lastBoardState);
     if (is_board_changed()) send_values();
     lastCheck = millis();
   }
