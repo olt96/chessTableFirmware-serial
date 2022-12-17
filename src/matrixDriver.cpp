@@ -1,7 +1,6 @@
 #include <matrixDriver.h>
-void fixHardwareMistakes(uint8_t currentBoardState[])
+void fix_hardware_mistakes(uint8_t currentBoardState[])
 {
-
   uint8_t temp = currentBoardState[0];
   currentBoardState[0] = (currentBoardState[0] & ~0x10) | (currentBoardState[1] & 0x10);
   currentBoardState[1] = (currentBoardState[1] & ~0x10) | (temp & 0x10);
@@ -31,7 +30,7 @@ void read_full_sensor_matrix(uint8_t currentBoardState[], uint8_t lastBoardState
   uint8_t value = 0;
   uint8_t currentReadRow = 0;
 
-  for (int i = 0; i < NUM_BYTES; i++)
+  for (int i = 0; i < MATRIX_ARRAY_WIDTH; i++)
   {
     currentReadRow = 0;
     lastBoardState[i] = currentBoardState[i];
@@ -46,5 +45,5 @@ void read_full_sensor_matrix(uint8_t currentBoardState[], uint8_t lastBoardState
     }
     currentBoardState[i] = currentReadRow;
   }
-  fixHardwareMistakes(currentBoardState); // fix mistakes in soldering.
+  fix_hardware_mistakes(currentBoardState); // fix mistakes in soldering.
 }

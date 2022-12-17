@@ -7,7 +7,8 @@
 
 #define PULSE_WIDTH 5
 #define NUM_BYTES 8
+#define MATRIX_ARRAY_WIDTH 8
 
 void read_full_sensor_matrix(uint8_t currentBoardState[], uint8_t lastBoardState[]);
-void fixHardwareMistakes(uint8_t currentBoardState[]);
+void fix_hardware_mistakes(uint8_t currentBoardState[]);
 void setup_sensor_matrix();
