@@ -8,7 +8,7 @@
 #define GRABBER_CLOSED  false
 #define GRABBER_OPEN  true 
 
-#define EXTENSION_SERVO_SPEED 150
+#define EXTENSION_SERVO_SPEED 125
 #define GRABBER_SERVO_SPEED 1000
 
 #define SERVO_LOWER_LIMIT 80
@@ -34,12 +34,12 @@ void setup()
   extensionServo.attach(EXTENSION_SERVO_PIN, SERVO_UPPER_LIMIT);
   grabberServo.attach(GRABBER_SERVO_PIN, GRABBER_MIN);
   extensionServo.write(SERVO_UPPER_LIMIT);
-  grabberServo.write(GRABBER_MIN);
+  grabberServo.write(GRABBER_MAX);
 
   extensionServo.setSpeed(EXTENSION_SERVO_SPEED);
   grabberServo.setSpeed(GRABBER_SERVO_SPEED);
 
-  extensionServo.setEasingType(EASE_LINEAR);
+  extensionServo.setEasingType(EASE_QUADRATIC_OUT);
   grabberServo.setEasingType(EASE_QUADRATIC_OUT);
   attachInterrupt(digitalPinToInterrupt(RC_PIN), PulseTimer, CHANGE);
 }
